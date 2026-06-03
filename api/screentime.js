@@ -1,6 +1,8 @@
-let logs = [];
+import { Redis } from '@upstash/redis';
 
-export default function handler(req, res) {
+const redis = Redis.fromEnv();
+
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   const { app, action } = req.query;
@@ -11,12 +13,12 @@ export default function handler(req, res) {
       action,
       time: new Date().toISOString()
     };
-    logs.push(entry);
-    // keep only last 200 entries
-    if (logs.length > 200) logs = logs.slice(-200);
+    await redis.lpush('screentime_logs', JSON.stringify(entry));
+    await redis.ltrim('screentime_logs', 0, 199);
     return res.status(200).json({ ok: true, entry });
   }
 
-  // no params = return all logs
+  const raw = await redis.lrange('screentime_logs', 0, -1);
+  const logs = raw.map(e => JSON.parse(e));
   return res.status(200).json({ logs });
 }
