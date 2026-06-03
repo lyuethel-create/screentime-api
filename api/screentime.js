@@ -1,6 +1,6 @@
-import { kv } from '@vercel/kv';
+const { kv } = require('@vercel/kv');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   const { app, action } = req.query;
@@ -11,12 +11,11 @@ export default async function handler(req, res) {
       action,
       time: new Date().toISOString()
     };
-    await kv.lpush('screentime_logs', JSON.stringify(entry));
+    await kv.lpush('screentime_logs', entry);
     await kv.ltrim('screentime_logs', 0, 199);
     return res.status(200).json({ ok: true, entry });
   }
 
-  const raw = await kv.lrange('screentime_logs', 0, -1);
-  const logs = raw.map(e => JSON.parse(e));
+  const logs = await kv.lrange('screentime_logs', 0, -1);
   return res.status(200).json({ logs });
 }
