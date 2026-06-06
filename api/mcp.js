@@ -27,11 +27,18 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       jsonrpc: '2.0', id,
       result: {
-        tools: [{
-          name: 'get_screentime',
-          description: "Get S's iPhone app usage logs",
-          inputSchema: { type: 'object', properties: {} }
-        }]
+        tools: [
+          {
+            name: 'get_screentime',
+            description: "Get S's iPhone app usage logs",
+            inputSchema: { type: 'object', properties: {} }
+          },
+          {
+            name: 'get_location_events',
+            description: "Get S's iPhone location events (e.g. leave_home, arrive_work)",
+            inputSchema: { type: 'object', properties: {} }
+          }
+        ]
       }
     });
   }
@@ -43,6 +50,16 @@ module.exports = async function handler(req, res) {
         jsonrpc: '2.0', id,
         result: {
           content: [{ type: 'text', text: JSON.stringify({ logs }, null, 2) }]
+        }
+      });
+    }
+
+    if (params.name === 'get_location_events') {
+      const events = await kv.lrange('location_events', 0, -1);
+      return res.status(200).json({
+        jsonrpc: '2.0', id,
+        result: {
+          content: [{ type: 'text', text: JSON.stringify({ events }, null, 2) }]
         }
       });
     }
