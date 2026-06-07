@@ -56,4 +56,22 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({
         jsonrpc: '2.0', id,
         result: {
-          content: [{ type: 'text', t
+          content: [{ type: 'text', text: JSON.stringify({ events }, null, 2) }]
+        }
+      });
+    }
+    if (params.name === 'get_health_data') {
+      const logs = await kv.lrange('health_logs', 0, -1);
+      return res.status(200).json({
+        jsonrpc: '2.0', id,
+        result: {
+          content: [{ type: 'text', text: JSON.stringify({ logs }, null, 2) }]
+        }
+      });
+    }
+  }
+  return res.status(200).json({
+    jsonrpc: '2.0', id,
+    error: { code: -32601, message: 'Method not found' }
+  });
+};
