@@ -57,10 +57,11 @@ module.exports = async function handler(req, res) {
   if (method === 'tools/call') {
     if (params.name === 'get_screentime') {
       const logs = await kv.lrange('screentime_logs', 0, -1);
+      const formatted = logs.map(l => ({ ...l, time: toUKTime(l.time) }));
       return res.status(200).json({
         jsonrpc: '2.0', id,
         result: {
-          content: [{ type: 'text', text: JSON.stringify({ logs }, null, 2) }]
+          content: [{ type: 'text', text: JSON.stringify({ logs: formatted }, null, 2) }]
         }
       });
     }
